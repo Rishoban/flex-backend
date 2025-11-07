@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import { isIP } from 'net';
 
 import { config } from '@/config';
 import { logger } from '@/utils/logger';
@@ -71,42 +72,32 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   // Custom key generator to correctly extract client IP from Vercel's forwarded headers
   keyGenerator: (req) => {
-    // Helper function to validate IPv4 address
-    const isValidIPv4 = (ip: string): boolean => {
-      const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-      return ipv4Regex.test(ip);
-    };
-
-    // Helper function to validate IPv6 address (simplified)
-    const isValidIPv6 = (ip: string): boolean => {
-      const ipv6Regex = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
-      return ipv6Regex.test(ip) || /^::(?:[A-F0-9]{1,4}:){0,6}[A-F0-9]{1,4}$/i.test(ip) || /^[A-F0-9]{1,4}::(?:[A-F0-9]{1,4}:){0,5}[A-F0-9]{1,4}$/i.test(ip);
-    };
-
     // For Vercel deployments, use x-forwarded-for or x-real-ip
     if (process.env.VERCEL || config.nodeEnv === 'production') {
       const forwardedFor = req.headers['x-forwarded-for'];
       if (forwardedFor) {
         // x-forwarded-for can be a comma-separated list, take the first (client) IP
         const clientIp = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0].trim();
-        if (isValidIPv4(clientIp) || isValidIPv6(clientIp)) {
+        // Use Node.js built-in isIP() for accurate IPv4 and IPv6 validation
+        if (isIP(clientIp)) {
           return clientIp;
         }
       }
       const realIp = req.headers['x-real-ip'];
       if (realIp) {
         const clientIp = Array.isArray(realIp) ? realIp[0] : realIp;
-        if (isValidIPv4(clientIp) || isValidIPv6(clientIp)) {
+        if (isIP(clientIp)) {
           return clientIp;
         }
       }
     }
     // Fallback to req.ip (works with trust proxy configuration)
-    if (req.ip && (isValidIPv4(req.ip) || isValidIPv6(req.ip))) {
+    if (req.ip && isIP(req.ip)) {
       return req.ip;
     }
     // Final fallback: use socket address to provide isolation between clients
-    return req.socket?.remoteAddress || `fallback-${req.headers['user-agent'] || 'unknown'}`;
+    // If socket address is not available, use a fixed fallback to prevent manipulation
+    return req.socket?.remoteAddress || 'fallback-unknown';
   },
 });
 app.use(limiter);
