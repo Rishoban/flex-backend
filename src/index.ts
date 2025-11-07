@@ -19,7 +19,13 @@ const app = express();
 
 // Trust proxy - IMPORTANT for Vercel/serverless deployments
 // This must come before other middleware
-app.set('trust proxy', true);
+// Use '1' to trust only the first proxy (Vercel) in production
+// Use 'loopback' for local development
+if (process.env.VERCEL || config.nodeEnv === 'production') {
+  app.set('trust proxy', 1);
+} else {
+  app.set('trust proxy', 'loopback');
+}
 
 // Security middleware
 app.use(helmet());
@@ -61,6 +67,25 @@ const limiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.maxRequests,
   message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Custom key generator to correctly extract client IP from Vercel's forwarded headers
+  keyGenerator: (req) => {
+    // For Vercel deployments, use x-forwarded-for or x-real-ip
+    if (process.env.VERCEL || config.nodeEnv === 'production') {
+      const forwardedFor = req.headers['x-forwarded-for'];
+      if (forwardedFor) {
+        // x-forwarded-for can be a comma-separated list, take the first (client) IP
+        return Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0].trim();
+      }
+      const realIp = req.headers['x-real-ip'];
+      if (realIp) {
+        return Array.isArray(realIp) ? realIp[0] : realIp;
+      }
+    }
+    // Fallback to req.ip (works with trust proxy configuration)
+    return req.ip || 'unknown';
+  },
 });
 app.use(limiter);
 
