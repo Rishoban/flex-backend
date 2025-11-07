@@ -56,13 +56,16 @@ app.use(cors(corsOptions));
 // Handle preflight requests
 app.options('*', cors(corsOptions));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.maxRequests,
-  message: 'Too many requests from this IP, please try again later.',
-});
-app.use(limiter);
+// Rate limiting - only in non-serverless environments
+// Vercel/serverless has its own rate limiting at the edge
+if (!process.env.VERCEL) {
+  const limiter = rateLimit({
+    windowMs: config.rateLimit.windowMs,
+    max: config.rateLimit.maxRequests,
+    message: 'Too many requests from this IP, please try again later.',
+  });
+  app.use(limiter);
+}
 
 // General middleware
 app.use(compression());
