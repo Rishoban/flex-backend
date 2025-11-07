@@ -83,5 +83,16 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "_moduleAliases": {
+    "@": "dist",
+    "@config": "dist/config",
+    "@controllers": "dist/controllers",
+    "@middleware": "dist/middleware",
+    "@models": "dist/models",
+    "@routes": "dist/routes",
+    "@services": "dist/services",
+    "@utils": "dist/utils",
+    "@types": "dist/types"
   }
 }
