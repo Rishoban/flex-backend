@@ -16,21 +16,21 @@ COPY src ./src
 # Build TypeScript
 RUN npm run build
 
+# Prune dev dependencies
+RUN npm prune --omit=dev
+
 # Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files first
+# Copy package files
 COPY package*.json ./
 
-# Install production dependencies
-RUN npm ci --omit=dev && npm cache clean --force
-
-# Copy built files from builder stage
+# Copy built application from builder
 COPY --from=builder /app/dist ./dist
 
-# Copy node_modules from builder if needed (for runtime dependencies)
+# Copy production node_modules from builder (already pruned)
 COPY --from=builder /app/node_modules ./node_modules
 
 # Create non-root user
