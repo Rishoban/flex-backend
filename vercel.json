@@ -1,4 +1,5 @@
 {
+  "buildCommand": "echo 'Build handled by postinstall'",
   "rewrites": [
     {
       "source": "/(.*)",
