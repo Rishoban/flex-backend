@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { ResponseUtils } from '@/utils/helpers';
-import { body, query } from 'express-validator';
+import { body } from 'express-validator';
 import AuthController from '../controllers/auth.controller';
 import reviewController from '../controllers/review.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
@@ -621,6 +621,36 @@ router.get('/channels', reviewController.getChannels);
  *                           example: "2025-11-06T10:30:00Z"
  */
 router.get('/properties', reviewController.getProperties);
+
+/**
+ * @swagger
+ * /api/v1/hello:
+ *   get:
+ *     tags: [API]
+ *     summary: Get hello message
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Optional name for personalized greeting
+ *     responses:
+ *       200:
+ *         description: Hello message
+ */
+router.get('/hello', (req: Request, res: Response) => {
+  const name = req.query.name as string;
+  const message = name ? `Hello, ${name}!` : 'Hello, World!';
+  
+  const data = {
+    message,
+    timestamp: new Date().toISOString(),
+  };
+  
+  res.json(ResponseUtils.success('Hello message retrieved successfully', data));
+});
 
 /**
  * @swagger

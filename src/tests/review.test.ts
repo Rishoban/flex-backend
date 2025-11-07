@@ -439,11 +439,11 @@ describe('Review Endpoints', () => {
         .expect(200);
 
       const statusValues = response.body.data.statuses.map((s: any) => s.value);
-      expect(statusValues).toContain('Pending');
-      expect(statusValues).toContain('Approved');
-      expect(statusValues).toContain('Published');
-      expect(statusValues).toContain('Rejected');
-      expect(statusValues).toContain('Flagged');
+      expect(statusValues).toContain('pending');
+      expect(statusValues).toContain('approved');
+      expect(statusValues).toContain('published');
+      expect(statusValues).toContain('rejected');
+      expect(statusValues).toContain('flagged');
     });
 
     it('should return statuses in correct sort order', async () => {

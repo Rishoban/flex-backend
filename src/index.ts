@@ -153,7 +153,8 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-if (require.main === module) {
+// Only start server if this file is run directly (not in Vercel)
+if (require.main === module && !process.env.VERCEL) {
   startServer().catch(error => {
     logger.error('Server startup failed:', error);
     process.exit(1);

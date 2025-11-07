@@ -2,34 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/health(.*)",
-      "dest": "dist/index.js"
-    },
-    {
-      "src": "/api(.*)",
-      "dest": "dist/index.js"
-    },
-    {
-      "src": "/api-docs(.*)",
-      "dest": "dist/index.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "dist/index.js"
+      "dest": "api/index.js"
     }
   ],
   "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "dist/index.js": {
-      "maxDuration": 30
-    }
+    "NODE_ENV": "production",
+    "VERCEL": "1"
   }
 }
