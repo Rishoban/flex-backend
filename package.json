@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon",
-    "vercel-build": "tsc",
+    "vercel-build": "tsc && echo 'Build complete - serverless function ready'",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
