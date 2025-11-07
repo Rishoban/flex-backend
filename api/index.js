@@ -1,88 +1,80 @@
 // Vercel serverless function entry point
 const path = require('path');
-const cors = require('cors');
+
+// Set environment variables FIRST before any imports
+process.env.VERCEL = '1';
+process.env.NODE_ENV = 'production';
+process.env.CORS_ALLOWED_ORIGINS = 'https://flex-review-management.vercel.app,http://localhost:3000,http://localhost:3001';
 
 // Configure module aliases for path resolution
 const moduleAlias = require('module-alias');
-moduleAlias.addAlias('@', path.join(__dirname, '../dist'));
-moduleAlias.addAlias('@config', path.join(__dirname, '../dist/config'));
-moduleAlias.addAlias('@controllers', path.join(__dirname, '../dist/controllers'));
-moduleAlias.addAlias('@middleware', path.join(__dirname, '../dist/middleware'));
-moduleAlias.addAlias('@models', path.join(__dirname, '../dist/models'));
-moduleAlias.addAlias('@routes', path.join(__dirname, '../dist/routes'));
-moduleAlias.addAlias('@services', path.join(__dirname, '../dist/services'));
-moduleAlias.addAlias('@utils', path.join(__dirname, '../dist/utils'));
-moduleAlias.addAlias('@types', path.join(__dirname, '../dist/types'));
+const distPath = path.join(__dirname, '../dist');
 
-// Set environment variables for Vercel
-process.env.VERCEL = '1';
-process.env.NODE_ENV = 'production';
+moduleAlias.addAlias('@', distPath);
+moduleAlias.addAlias('@config', path.join(distPath, 'config'));
+moduleAlias.addAlias('@controllers', path.join(distPath, 'controllers'));
+moduleAlias.addAlias('@middleware', path.join(distPath, 'middleware'));
+moduleAlias.addAlias('@models', path.join(distPath, 'models'));
+moduleAlias.addAlias('@routes', path.join(distPath, 'routes'));
+moduleAlias.addAlias('@services', path.join(distPath, 'services'));
+moduleAlias.addAlias('@utils', path.join(distPath, 'utils'));
+moduleAlias.addAlias('@types', path.join(distPath, 'types'));
 
-// Set CORS_ALLOWED_ORIGINS for production
-process.env.CORS_ALLOWED_ORIGINS = 'https://flex-review-management.vercel.app,http://localhost:3000,http://localhost:3001';
+let app;
 
 try {
   // Import the compiled Express app
-  const app = require('../dist/index.js');
+  const appModule = require(path.join(distPath, 'index.js'));
   
-  // Get the Express app instance
-  const expressApp = app.default || app;
+  // Handle both default export and direct export
+  app = appModule.default || appModule;
   
-  // Add additional CORS middleware as a safety net
-  const corsOptions = {
-    origin: function (origin, callback) {
-      const allowedOrigins = [
-        'https://flex-review-management.vercel.app',
-        'http://localhost:3000',
-        'http://localhost:3001'
-      ];
-      
-      // Allow requests with no origin (mobile apps, Postman)
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Allow all for now
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-    optionsSuccessStatus: 200
-  };
+  if (typeof app !== 'function') {
+    throw new Error('Loaded app is not a valid Express application');
+  }
   
-  // Prepend CORS to handle it before other middleware
-  expressApp.use(cors(corsOptions));
-  expressApp.options('*', cors(corsOptions));
-  
-  // Export the Express app
-  module.exports = expressApp;
+  console.log('✅ Express app loaded successfully');
 } catch (error) {
-  console.error('Failed to load app:', error);
+  console.error('❌ Failed to load app:', error);
+  console.error('Stack:', error.stack);
   
-  // Fallback simple Express app with CORS
+  // Fallback to simple Express app
   const express = require('express');
-  const fallbackApp = express();
+  const cors = require('cors');
   
-  // Add CORS to fallback
-  const corsOptions = {
+  app = express();
+  
+  // Add CORS
+  app.use(cors({
     origin: 'https://flex-review-management.vercel.app',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
-  };
+  }));
   
-  fallbackApp.use(cors(corsOptions));
-  fallbackApp.options('*', cors(corsOptions));
+  app.use(express.json());
   
-  fallbackApp.get('*', (req, res) => {
+  // Debug endpoint
+  app.get('/', (req, res) => {
+    res.json({
+      success: false,
+      message: 'Fallback mode - main app failed to load',
+      error: error.message,
+      distPath: distPath,
+      filesInDist: require('fs').existsSync(distPath) 
+        ? require('fs').readdirSync(distPath) 
+        : 'dist folder not found'
+    });
+  });
+  
+  // Catch all
+  app.all('*', (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server initialization failed',
       error: error.message,
-      stack: error.stack
+      path: req.path
     });
   });
-  
-  module.exports = fallbackApp;
 }
+
+module.exports = app;
