@@ -71,20 +71,42 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   // Custom key generator to correctly extract client IP from Vercel's forwarded headers
   keyGenerator: (req) => {
+    // Helper function to validate IPv4 address
+    const isValidIPv4 = (ip: string): boolean => {
+      const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      return ipv4Regex.test(ip);
+    };
+
+    // Helper function to validate IPv6 address (simplified)
+    const isValidIPv6 = (ip: string): boolean => {
+      const ipv6Regex = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
+      return ipv6Regex.test(ip) || /^::(?:[A-F0-9]{1,4}:){0,6}[A-F0-9]{1,4}$/i.test(ip) || /^[A-F0-9]{1,4}::(?:[A-F0-9]{1,4}:){0,5}[A-F0-9]{1,4}$/i.test(ip);
+    };
+
     // For Vercel deployments, use x-forwarded-for or x-real-ip
     if (process.env.VERCEL || config.nodeEnv === 'production') {
       const forwardedFor = req.headers['x-forwarded-for'];
       if (forwardedFor) {
         // x-forwarded-for can be a comma-separated list, take the first (client) IP
-        return Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0].trim();
+        const clientIp = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0].trim();
+        if (isValidIPv4(clientIp) || isValidIPv6(clientIp)) {
+          return clientIp;
+        }
       }
       const realIp = req.headers['x-real-ip'];
       if (realIp) {
-        return Array.isArray(realIp) ? realIp[0] : realIp;
+        const clientIp = Array.isArray(realIp) ? realIp[0] : realIp;
+        if (isValidIPv4(clientIp) || isValidIPv6(clientIp)) {
+          return clientIp;
+        }
       }
     }
     // Fallback to req.ip (works with trust proxy configuration)
-    return req.ip || 'unknown';
+    if (req.ip && (isValidIPv4(req.ip) || isValidIPv6(req.ip))) {
+      return req.ip;
+    }
+    // Final fallback: use socket address to provide isolation between clients
+    return req.socket?.remoteAddress || `fallback-${req.headers['user-agent'] || 'unknown'}`;
   },
 });
 app.use(limiter);

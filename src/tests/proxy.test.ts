@@ -45,6 +45,28 @@ describe('Trust Proxy and Rate Limiting Configuration', () => {
       expect(response.headers).toHaveProperty('ratelimit-limit');
     });
 
+    it('should reject invalid IP addresses in headers', async () => {
+      const response = await request(app)
+        .get('/health')
+        .set('x-forwarded-for', 'invalid-ip-address')
+        .expect(200);
+
+      // Should still process the request but use fallback IP
+      expect(response.status).toBe(200);
+      expect(response.headers).toHaveProperty('ratelimit-limit');
+    });
+
+    it('should handle IPv6 addresses in headers', async () => {
+      const response = await request(app)
+        .get('/health')
+        .set('x-forwarded-for', '2001:0db8:85a3:0000:0000:8a2e:0370:7334')
+        .expect(200);
+
+      // Should successfully process the request with IPv6 address
+      expect(response.status).toBe(200);
+      expect(response.headers).toHaveProperty('ratelimit-limit');
+    });
+
     it('should not include legacy rate limit headers', async () => {
       const response = await request(app)
         .get('/health')
