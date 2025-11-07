@@ -15,7 +15,7 @@
     "format": "prettier --write src/**/*.ts",
     "docker:build": "docker build -t flex-backend .",
     "docker:run": "docker run -p 3000:3000 flex-backend",
-    "prepare": "husky install"
+    "prepare": "node -e \"try { require('husky').install() } catch (e) { if (e.code !== 'MODULE_NOT_FOUND') throw e }\""
   },
   "keywords": [
     "nodejs",
