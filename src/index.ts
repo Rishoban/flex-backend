@@ -134,6 +134,19 @@ process.on('SIGTERM', () => {
 // Initialize background services
 const reviewSyncService = ReviewSyncService.getInstance();
 
+// Start background sync only in non-serverless environments
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
+  reviewSyncService.startBackgroundSync();
+  logger.info('🔄 Background review sync service started', {
+    service: 'flex-backend'
+  });
+} else {
+  logger.info('📱 API service ready (serverless mode)', {
+    service: 'flex-backend',
+    environment: process.env.VERCEL ? 'vercel' : 'production'
+  });
+}
+
 process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
   reviewSyncService.stopBackgroundSync();

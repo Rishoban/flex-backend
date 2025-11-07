@@ -1,0 +1,32 @@
+# Vercel deployment
+.vercel
+
+# Build output
+dist/
+
+# Logs (can't write in Vercel anyway)
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+
+# Coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test outputs
+jest-results/
+*.tsbuildinfo

@@ -25,26 +25,29 @@ export const logger = winston.createLogger({
   format: logFormat,
   defaultMeta: { service: 'flex-backend' },
   transports: [
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-    new winston.transports.File({
-      filename: config.logging.file,
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
+    // File transports disabled for Vercel (read-only filesystem)
+    ...(process.env.VERCEL ? [] : [
+      new winston.transports.File({
+        filename: 'logs/error.log',
+        level: 'error',
+        maxsize: 5242880, // 5MB
+        maxFiles: 5,
+      }),
+      new winston.transports.File({
+        filename: config.logging.file,
+        maxsize: 5242880, // 5MB
+        maxFiles: 5,
+      }),
+    ]),
+    // Always add console transport for serverless environments
+    new winston.transports.Console({
+      format: consoleFormat,
     }),
   ],
 });
 
-// Add console transport in development
-if (config.nodeEnv !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: consoleFormat,
-  }));
-}
+// Remove separate console transport addition for development
+// since it's now always included above
 
 // Add console transport in test but with minimal output
 if (config.nodeEnv === 'test') {

@@ -7,6 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon",
+    "vercel-build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -26,6 +27,10 @@
   ],
   "author": "Your Name",
   "license": "MIT",
+  "engines": {
+    "node": "18.x",
+    "npm": "8.x"
+  },
   "dependencies": {
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
