@@ -14,34 +14,35 @@ const rejectReviewValidation = [
     .withMessage('Rejection reason must be a string between 1 and 500 characters')
 ];
 
-const validatePagination = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer')
-    .toInt(),
-  query('limit')
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('Limit must be between 1 and 100')
-    .toInt(),
-  query('sortBy')
-    .optional()
-    .isIn(['submittedAt', 'rating', 'guestName', 'status'])
-    .withMessage('Sort by must be one of: submittedAt, rating, guestName, status'),
-  query('sortOrder')
-    .optional()
-    .isIn(['asc', 'desc'])
-    .withMessage('Sort order must be asc or desc'),
-  query('status')
-    .optional()
-    .isString()
-    .withMessage('Status must be a string'),
-  query('channel')
-    .optional()
-    .isString()
-    .withMessage('Channel must be a string')
-];
+// Unused for now - keeping for future pagination features
+// const validatePagination = [
+//   query('page')
+//     .optional()
+//     .isInt({ min: 1 })
+//     .withMessage('Page must be a positive integer')
+//     .toInt(),
+//   query('limit')
+//     .optional()
+//     .isInt({ min: 1, max: 100 })
+//     .withMessage('Limit must be between 1 and 100')
+//     .toInt(),
+//   query('sortBy')
+//     .optional()
+//     .isIn(['submittedAt', 'rating', 'guestName', 'status'])
+//     .withMessage('Sort by must be one of: submittedAt, rating, guestName, status'),
+//   query('sortOrder')
+//     .optional()
+//     .isIn(['asc', 'desc'])
+//     .withMessage('Sort order must be asc or desc'),
+//   query('status')
+//     .optional()
+//     .isString()
+//     .withMessage('Status must be a string'),
+//   query('channel')
+//     .optional()
+//     .isString()
+//     .withMessage('Channel must be a string')
+// ];
 
 const router = Router();
 

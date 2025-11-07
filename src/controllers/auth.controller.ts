@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 import { body, validationResult } from 'express-validator';
 import { ResponseUtils } from '@/utils/helpers';
 import { config } from '@/config';
@@ -73,7 +72,6 @@ export class AuthController {
         ResponseUtils.success('Login successful', loginData)
       );
     } catch (error) {
-      console.error('Login error:', error);
       res.status(500).json(
         ResponseUtils.error('Internal server error', 500)
       );
