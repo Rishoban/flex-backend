@@ -17,6 +17,10 @@ import { ReviewSyncService } from '@/services/reviewSync.service';
 
 const app = express();
 
+// Trust proxy - IMPORTANT for Vercel/serverless deployments
+// This must come before other middleware
+app.set('trust proxy', true);
+
 // Security middleware
 app.use(helmet());
 
