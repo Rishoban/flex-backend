@@ -1,8 +1,8 @@
 # Vercel deployment
 .vercel
 
-# Build output
-dist/
+# Build output - DO NOT IGNORE dist/ (needed after build)
+# dist/
 
 # Logs (can't write in Vercel anyway)
 logs/
@@ -30,3 +30,12 @@ Thumbs.db
 # Test outputs
 jest-results/
 *.tsbuildinfo
+
+# Source files (not needed after build)
+src/
+tests/
+*.md
+!README.md
+docker-compose.yml
+Dockerfile
+.github/
