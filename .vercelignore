@@ -1,9 +1,6 @@
 # Vercel deployment
 .vercel
 
-# Build output - DO NOT IGNORE dist/ (needed after build)
-# dist/
-
 # Logs (can't write in Vercel anyway)
 logs/
 *.log
@@ -13,7 +10,7 @@ logs/
 .env.local
 .env.production
 
-# Dependencies
+# Dependencies (will be installed by Vercel)
 node_modules/
 
 # Coverage
@@ -31,11 +28,18 @@ Thumbs.db
 jest-results/
 *.tsbuildinfo
 
-# Source files (not needed after build)
-src/
+# Test files
 tests/
+**/*.test.ts
+**/*.spec.ts
+
+# Documentation (not needed for runtime)
 *.md
 !README.md
+
+# Docker files
 docker-compose.yml
 Dockerfile
+
+# CI/CD
 .github/
